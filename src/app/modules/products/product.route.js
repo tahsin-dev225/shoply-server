@@ -7,6 +7,8 @@ const router = Router();
 router.post('/',validationMiddleware(productValidation.createValidation), productService.addProduct)
 
 router.get('/', productService.getAllProducts )
+router.get('/paginated', productService.getPaginatedProducts )
 router.get('/:id', productService.getSingleProduct )
+router.get('/letest-product', productService.getLatestProducts )
 
-export const userRoute = router
+export const productRoute = router

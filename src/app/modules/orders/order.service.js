@@ -16,7 +16,7 @@ const addOrder = catchAsync(async(req,res)=>{
     } 
 })
 
-const getAllProduct = catchAsync(async (req,res)=>{
+const getAllOrders = catchAsync(async (req,res)=>{
     try {
         const result = await Order.find();
 
@@ -26,7 +26,7 @@ const getAllProduct = catchAsync(async (req,res)=>{
     }
 })
 
-const getSingleProduct = catchAsync(async (req,res)=>{
+const getSingleOrder = catchAsync(async (req,res)=>{
     try {
         const { id } = req.params;
         const result = await Order.findOne({ id });
@@ -40,8 +40,8 @@ const getSingleProduct = catchAsync(async (req,res)=>{
     }
 })
 
-export const productService = {
+export const orderService = {
     addOrder,
-    getAllProduct,
-    getSingleProduct
+    getAllOrders,
+    getSingleOrder
 }
