@@ -11,4 +11,8 @@ router.get('/paginated', productService.getPaginatedProducts )
 router.get('/leatest-product', productService.getLatestProducts )
 router.get('/:id', productService.getSingleProduct )
 
+router.patch('/:id', productService.updateProduct )
+
+router.delete('/:id', productService.deleteProduct )
+
 export const productRoute = router

@@ -75,10 +75,46 @@ const getPaginatedProducts = catchAsync(async (req, res) => {
     }
 });
 
+const updateProduct = catchAsync(async(req,res)=>{
+    const { id } = req.params; 
+    const updates = req.body; 
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true, // return updated document
+      runValidators: true // validate according to schema
+    });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: updatedProduct
+    });
+})
+
+const deleteProduct = catchAsync(async(req,res)=>{
+    const { id } = req.params;
+
+    const deleted = await Product.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      message: "Product deleted successfully",
+      deletedProduct: deleted
+    });
+})
+
 export const productService = {
     addProduct,
     getAllProducts,
     getSingleProduct,
     getLatestProducts,
-    getPaginatedProducts
+    getPaginatedProducts,
+    updateProduct,
+    deleteProduct
 }
