@@ -16,11 +16,11 @@ const routes = [
         route : jwtRouter
     },
     {
-        path : "/product",
+        path : "/products",
         route : productRoute
     },
     {
-        path : "/order",
+        path : "/orders",
         route : orderRoute
     },
     {

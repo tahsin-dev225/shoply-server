@@ -6,6 +6,7 @@ dotenv.config()
 const PORT = process.env.PORT || 5000;
 import mongoose from 'mongoose';
 import router from './src/app/router/router.js';
+app.use(express.json());
 
 app.use(
     cors({
@@ -24,7 +25,7 @@ mongoose.connect(uri)
 .then(()=> console.log('connection successful'))
 .catch(err => console.log(err))
 
-app.use(express.json());
+
 
 app.use("/api/v1", router);
 

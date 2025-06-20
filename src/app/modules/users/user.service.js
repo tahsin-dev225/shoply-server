@@ -5,11 +5,14 @@ const User = mongoose.model("User",userSchema)
 
 const addUser = catchAsync(async(req,res)=>{
     try {
-        const { name, email,role } = req.body;
+        const { name, email } = req.body;
         const existing = await User.findOne({ email });
-        if (existing) return res.status(400).json({ message: "User already exists with this email." });
+        if (existing){
+            console.log(existing)
+            return res.status(400).json({ message: "User already exists with this email." });
+        }
 
-        const newUser = new User({ name, email,role });
+        const newUser = new User({ name, email });
         await newUser.save();
 
         res.status(201).json(newUser);

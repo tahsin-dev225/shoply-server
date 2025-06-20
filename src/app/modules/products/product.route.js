@@ -1,7 +1,7 @@
 import { Router } from "express";
-import validationMiddleware from "../../helper/validateJod";
-import { productValidation } from "./productValidation";
-import { productService } from "./product.service";
+import validationMiddleware from "../../helper/validateJod.js";
+import { productValidation } from "./productValidation.js";
+import { productService } from "./product.service.js";
 const router = Router();
 
 router.post('/',validationMiddleware(productValidation.createValidation), productService.addProduct)

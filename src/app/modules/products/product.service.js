@@ -5,11 +5,11 @@ const Product = mongoose.model("Product",productSchema)
 
 const addProduct = catchAsync(async(req,res)=>{
     try {
-        const { product, email,price } = req.body;
+        const { name, category,image,price,description   } = req.body;
         // const existing = await User.findOne({ email });
         // if (existing) return res.status(400).json({ message: "User already exists with this email." });
 
-        const newProduct = new Product({ product, email,price });
+        const newProduct = new Product({ name, category,image,price,description });
         await newProduct.save();
 
         res.status(201).json(newProduct);
@@ -57,7 +57,7 @@ const getLatestProducts = catchAsync(async (req, res) => {
 const getPaginatedProducts = catchAsync(async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // default page 1
-        const limit = 12;
+        const limit = 10;
 
         const skip = (page - 1) * limit;
 
