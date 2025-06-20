@@ -5,9 +5,9 @@ const Order = mongoose.model("Order",orderSchema)
 
 const addOrder = catchAsync(async(req,res)=>{
     try {
-        const { product, userId,price } = req.body;
+        const { productId,quantity , userId,price } = req.body;
 
-        const newProduct = new Order({ product, userId,price });
+        const newProduct = new Order({ productId,quantity , userId,price });
         await newProduct.save();
 
         res.status(201).json(newProduct);
@@ -28,8 +28,8 @@ const getAllOrders = catchAsync(async (req,res)=>{
 
 const getSingleOrder = catchAsync(async (req,res)=>{
     try {
-        const { id } = req.params;
-        const result = await Order.findOne({ id });
+        const { userId } = req.params;
+        const result = await Order.findOne({ userId : userId });
 
         if (!result) {
             return res.status(404).json({ message: "Product not found" });

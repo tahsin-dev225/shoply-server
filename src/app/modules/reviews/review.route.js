@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { reviewService } from "./review.service.js";
+import validationMiddleware from "../../helper/validateJod.js";
+import { reviewValidation } from "./reviewValidation.js";
 const router = Router();
 
-router.post('/',reviewService.addReview)
+router.post('/',validationMiddleware(reviewValidation.createValidation),reviewService.addReview)
 
 router.get('/:productId',reviewService.getProductReviews)
 

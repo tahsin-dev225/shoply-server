@@ -2,14 +2,17 @@ import mongoose from "mongoose";
 
 
 const orderSchema = new mongoose.Schema({
-    name : {
-        type : String,
+    productId : {
+        type : mongoose.Schema.Types.ObjectId,
         required : true
     },
-    email : {
-        type : String,
+    userId : {
+        type : mongoose.Schema.Types.ObjectId,
         required: true,
-        unique: true,
+    },
+    quantity : {
+        type : Number,
+        require : true
     },
     price : {
         type : Number,

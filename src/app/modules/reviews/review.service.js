@@ -12,7 +12,7 @@ const addReview = catchAsync( async (req, res) => {
             return res.status(400).json({ message: "You already reviewed this product" });
         }
 
-        const review = new Review({ userId, productId, rating, comment });
+        const review = new Review({ userId, productId, rating, comment : comment || '' });
         await review.save();
 
         res.status(201).json({ message: "Review added", review });

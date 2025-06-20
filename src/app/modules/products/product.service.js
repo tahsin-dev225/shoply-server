@@ -31,7 +31,7 @@ const getAllProducts = catchAsync(async (req,res)=>{
 const getSingleProduct = catchAsync(async (req,res)=>{
     try {
         const { id } = req.params;
-        const result = await Product.findOne({ id });
+        const result = await Product.findOne({ _id : id });
 
         if (!result) {
             return res.status(404).json({ message: "Product not found" });
@@ -43,15 +43,11 @@ const getSingleProduct = catchAsync(async (req,res)=>{
 })
 
 const getLatestProducts = catchAsync(async (req, res) => {
-    try {
-        const latestProducts = await Product.find()
-            .sort({ createdAt: -1 }) 
-            .limit(6);
+    const latestProducts = await Product.find()
+        .sort({ createdAt: -1 }) 
+        .limit(6);
 
-        res.status(200).json(latestProducts);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.status(200).json(latestProducts);
 });
 
 const getPaginatedProducts = catchAsync(async (req, res) => {

@@ -11,7 +11,6 @@ const addUser = catchAsync(async(req,res)=>{
             console.log(existing)
             return res.status(400).json({ message: "User already exists with this email." });
         }
-
         const newUser = new User({ name, email });
         await newUser.save();
 

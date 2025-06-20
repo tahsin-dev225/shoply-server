@@ -8,7 +8,7 @@ router.post('/',validationMiddleware(productValidation.createValidation), produc
 
 router.get('/', productService.getAllProducts )
 router.get('/paginated', productService.getPaginatedProducts )
+router.get('/leatest-product', productService.getLatestProducts )
 router.get('/:id', productService.getSingleProduct )
-router.get('/letest-product', productService.getLatestProducts )
 
 export const productRoute = router
