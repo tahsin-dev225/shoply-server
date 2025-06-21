@@ -20,6 +20,26 @@ const addUser = catchAsync(async(req,res)=>{
     } 
 })
 
+const makeAdminById = catchAsync(async(req,res)=>{
+    const { id } = req.params;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role: "admin" },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "User promoted to admin",
+      user: updatedUser
+    });
+
+})
+
 const getUserWithEmail = catchAsync(async (req,res)=>{
     try {
         const { email } = req.params;
@@ -36,5 +56,6 @@ const getUserWithEmail = catchAsync(async (req,res)=>{
 
 export const userService = {
     addUser,
-    getUserWithEmail
+    getUserWithEmail,
+    makeAdminById
 }
