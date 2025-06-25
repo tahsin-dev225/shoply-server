@@ -6,6 +6,7 @@ const router = Router();
 
 router.post('/',validationMiddleware(userValidation.createValidation),userService.addUser)
 
+router.patch('/:id', userService.makeAdminById)
 router.get('/:email', userService.getUserWithEmail)
 
 export const userRoute = router
