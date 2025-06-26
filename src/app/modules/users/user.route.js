@@ -6,7 +6,10 @@ const router = Router();
 
 router.post('/',validationMiddleware(userValidation.createValidation),userService.addUser)
 
-router.patch('/:id', userService.makeAdminById)
+router.patch('/makeAdmin/:id', userService.makeAdminById)
+router.delete('/:id', userService.deleteUser)
+router.patch('/:id', userService.updateUser)
+router.get('/', userService.getAllUsers)
 router.get('/:email', userService.getUserWithEmail)
 
 export const userRoute = router
