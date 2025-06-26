@@ -40,8 +40,21 @@ const getSingleOrder = catchAsync(async (req,res)=>{
     }
 })
 
+const getRecentOrders = catchAsync(async (req, res) => {
+  try {
+    const result = await Order.find()
+      .sort({ createdAt: -1 }) // Sort by newest
+      .limit(3); // Last 3 orders
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export const orderService = {
     addOrder,
     getAllOrders,
-    getSingleOrder
+    getSingleOrder,
+    getRecentOrders,
 }

@@ -7,6 +7,7 @@ const router = Router();
 router.post('/',validationMiddleware(orderValidation.createValidation), orderService.addOrder)
 
 router.get('/',orderService.getAllOrders )
+router.get('/recentOrders',orderService.getRecentOrders )
 router.get('/:userId', orderService.getSingleOrder )
 
 export const orderRoute = router
