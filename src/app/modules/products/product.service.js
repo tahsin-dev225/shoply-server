@@ -5,11 +5,11 @@ const Product = mongoose.model("Product",productSchema)
 
 const addProduct = catchAsync(async(req,res)=>{
     try {
-        const { name, category,image,price,description   } = req.body;
+        const { name, category,image,price,description , stock   } = req.body;
         // const existing = await User.findOne({ email });
         // if (existing) return res.status(400).json({ message: "User already exists with this email." });
 
-        const newProduct = new Product({ name, category,image,price,description });
+        const newProduct = new Product({ name, category,image,price,description ,stock });
         await newProduct.save();
 
         res.status(201).json(newProduct);
