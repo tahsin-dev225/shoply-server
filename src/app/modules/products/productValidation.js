@@ -8,6 +8,7 @@ const createValidation = z.object({
     price: z.number().min(0, "Price must be a positive number"),
 
     // Optional or default values (optional in input, will be set on backend or DB default)
+    stock: z.number().min(0, "stock must be a positive number").optional(),
     rating: z.number().min(0).max(5).optional(),
     numReviews: z.number().min(0).optional(),
     inStock: z.boolean().optional(),
