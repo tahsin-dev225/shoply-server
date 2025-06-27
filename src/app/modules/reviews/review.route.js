@@ -6,6 +6,7 @@ const router = Router();
 
 router.post('/',validationMiddleware(reviewValidation.createValidation),reviewService.addReview)
 
+router.get('/',reviewService.getAllReviews)
 router.get('/:productId',reviewService.getProductReviews)
 
 export const reviewsRoute = router
