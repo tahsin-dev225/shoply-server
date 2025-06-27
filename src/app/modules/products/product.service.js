@@ -19,7 +19,7 @@ const addProduct = catchAsync(async(req,res)=>{
 })
 
 const getAllProducts = catchAsync(async (req,res)=>{
-    try {
+    try {   
         const result = await Product.find();
 
         res.status(200).json(result);
@@ -109,6 +109,16 @@ const deleteProduct = catchAsync(async(req,res)=>{
     });
 })
 
+const getLowStockProducts = catchAsync(async (req, res) => {
+  try {
+    const lowStock = await Product.find({ stock: { $lt: 5 } }).sort({ stock: 1 });
+    res.status(200).json(lowStock);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 export const productService = {
     addProduct,
     getAllProducts,
@@ -116,5 +126,6 @@ export const productService = {
     getLatestProducts,
     getPaginatedProducts,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getLowStockProducts,
 }
