@@ -7,19 +7,6 @@ const addOrder = catchAsync(async (req, res) => {
   try {
     const { productId, quantity, userId, price } = req.body;
 
-    const newProduct = new Order({ productId, quantity, userId, price });
-    await newProduct.save();
-
-    res.status(201).json(newProduct);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-const getAllOrders = catchAsync(async (req, res) => {
-  try {
-    const result = await Order.find();
-
     const newOrder = new Order({ productId, quantity, userId, price });
     await newOrder.save();
 
@@ -36,6 +23,16 @@ const getAllOrders = catchAsync(async (req, res) => {
   }
 });
 
+const getAllOrders = catchAsync(async (req, res) => {
+  try {
+    const result = await Order.find().populate('productId')
+    .populate('userId');
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 const getSingleOrder = catchAsync(async (req, res) => {
   try {
