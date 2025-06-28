@@ -8,7 +8,6 @@ router.post('/',validationMiddleware(userValidation.createValidation),userServic
 
 router.get('/', userService.getAllUsers)
 router.get('/login/:email', userService.getUserWithEmail)
-router.get('/getById/:id', userService.getUserWithId)
 router.delete('/:id', userService.deleteUser)
 router.patch('/:id', userService.updateUser)
 router.patch('/makeAdmin/:id', userService.makeAdminById)
