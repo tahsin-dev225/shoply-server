@@ -47,8 +47,20 @@ const getAllReviews = catchAsync(async(req,res)=>{
     }
 })
 
+const getUsersAllReviews = catchAsync(async(req,res)=>{
+    try {
+        const {id} = req.params;
+        const reviews = await Review.find({userId : id})
+
+        res.status(200).json(reviews);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+})
+
 export const reviewService = {
     addReview,
     getProductReviews,
-    getAllReviews
+    getAllReviews,
+    getUsersAllReviews
 }

@@ -56,7 +56,7 @@ const getAllUsers = catchAsync(async (req,res)=>{
 const getUserWithEmail = catchAsync(async (req,res)=>{
     try {
         const { email } = req.params;
-        const result = await User.findOne({ email });
+        const result = await User.findOne({ email :email });
 
         if (!result) {
             return res.status(404).json({ message: "User not found" });

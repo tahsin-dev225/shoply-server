@@ -35,17 +35,13 @@ const getAllOrders = catchAsync(async (req, res) => {
 });
 
 const getSingleOrder = catchAsync(async (req, res) => {
-  try {
     const { userId } = req.params;
     const result = await Order.findOne({ userId: userId });
 
     if (!result) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(200).json({ message: "No order found." });
     }
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    res.status(200).json([result]);
 });
 
 const getRecentOrders = catchAsync(async (req, res) => {
