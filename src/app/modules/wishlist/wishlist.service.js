@@ -4,7 +4,6 @@ import wishlistSchema from "./wishlistSchema.js";
 const Wishlish = mongoose.model("Wishlist",wishlistSchema)
 
 const addWishlist = catchAsync( async (req, res) => {
-    try {
         const { userId, productId} = req.body;
 
         const existing = await Wishlish.findOne({ userId, productId });
@@ -16,32 +15,28 @@ const addWishlist = catchAsync( async (req, res) => {
         await wishlist.save();
 
         res.status(201).json({ message: "Added to your wishlist.", wishlist });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 });
 
 const getWishlistByUserId = catchAsync( async (req, res) => {
-    try {
         const { userId} = req.params;
 
-        const wishlist = await Wishlish.findOne({ userId });
+        const wishlist = await Wishlish.find({ userId });
         
         res.status(201).json( wishlist );
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+});
+
+const getSingleWishlist = catchAsync( async (req, res) => {
+        const { userId,productId} = req.query;
+
+        const wishlist = await Wishlish.find({ userId });
+        
+        res.status(201).json( wishlist );
 });
 
 const getAllWishList = catchAsync( async (req, res) => {
-    try {
-
         const wishlists = await Wishlish.find();
         
         res.status(201).json( wishlists );
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 });
 
 export const wishlistService = {

@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 import catchAsync from "../../helper/catchAsync.js";
 import orderSchema from "./orderSchema.js";
+import User from "../users/userSchema.js";
+import { Product } from "../products/product.service.js";
 const Order = mongoose.model("Order", orderSchema);
 
 const addOrder = catchAsync(async (req, res) => {
-  try {
     const { productId, quantity, userId, price } = req.body;
 
     const newOrder = new Order({ productId, quantity, userId, price });
+
     await newOrder.save();
 
     await User.findByIdAndUpdate(userId, {
@@ -17,10 +19,7 @@ const addOrder = catchAsync(async (req, res) => {
       }
     });
 
-    res.status(201).json(newProduct);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    res.status(201).json(newOrder);
 });
 
 const getAllOrders = catchAsync(async (req, res) => {
@@ -34,14 +33,24 @@ const getAllOrders = catchAsync(async (req, res) => {
   }
 });
 
-const getSingleOrder = catchAsync(async (req, res) => {
+const getUserOrder = catchAsync(async (req, res) => {
     const { userId } = req.params;
-    const result = await Order.findOne({ userId: userId });
+    const result = await Order.find({ userId: userId });
 
     if (!result) {
       return res.status(200).json({ message: "No order found." });
     }
-    res.status(200).json([result]);
+    res.status(200).json(result);
+});
+
+const getUserOrderProductDetails = catchAsync(async (req, res) => {
+    const { userId,productId } = req.query;
+    const result = await Order.find({ userId }).populate(productId);
+
+    if (!result) {
+      return res.status(200).json({ message: "No order found." });
+    }
+    res.status(200).json(result);
 });
 
 const getRecentOrders = catchAsync(async (req, res) => {
@@ -126,7 +135,7 @@ const getLast5MonthsStats = catchAsync(async (req, res) => {
 export const orderService = {
   addOrder,
   getAllOrders,
-  getSingleOrder,
+  getUserOrder,
   getRecentOrders,
   getLast30DaysOrdersCount,
   getLast30DaysEarnings,

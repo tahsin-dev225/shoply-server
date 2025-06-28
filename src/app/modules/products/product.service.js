@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import catchAsync from "../../helper/catchAsync.js";
 import productSchema from "./productSchema.js";
-const Product = mongoose.model("Product",productSchema)
+export const Product = mongoose.model("Product",productSchema)
 
 const addProduct = catchAsync(async(req,res)=>{
     try {

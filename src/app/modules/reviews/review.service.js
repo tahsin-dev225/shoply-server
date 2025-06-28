@@ -57,26 +57,15 @@ const getProductReviews = catchAsync(async (req, res) => {
 
 
 const getUsersAllReviews = catchAsync(async(req,res)=>{
-    try {
         const {id} = req.params;
         const reviews = await Review.find({userId : id})
 
         res.status(200).json(reviews);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 })
 
 export const reviewService = {
-<<<<<<< HEAD
     addReview,
     getProductReviews,
     getAllReviews,
     getUsersAllReviews
 }
-=======
-  addReview,
-  getAllReviews,
-  getProductReviews,
-};
->>>>>>> dd63152e2c99a9935305ca229e8ac70f9b17f2e2

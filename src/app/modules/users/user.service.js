@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import catchAsync from "../../helper/catchAsync.js";
-import userSchema from "./userSchema.js";
-const User = mongoose.model("User",userSchema)
+import User from "./userSchema.js";
 
 const addUser = catchAsync(async(req,res)=>{
     try {
@@ -56,7 +55,8 @@ const getAllUsers = catchAsync(async (req,res)=>{
 const getUserWithEmail = catchAsync(async (req,res)=>{
     try {
         const { email } = req.params;
-        const result = await User.findOne({ email :email });
+        const result = await User.findOne({ email });
+        console.log(result)
 
         if (!result) {
             return res.status(404).json({ message: "User not found" });
@@ -65,6 +65,17 @@ const getUserWithEmail = catchAsync(async (req,res)=>{
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
+})
+
+const getUserWithId = catchAsync(async (req,res)=>{
+        const { id } = req.params;
+        const result = await User.findOne({ _id : id });
+        console.log(result)
+
+        if (!result) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json(result);
 })
 const deleteUser = catchAsync(async (req,res)=>{
     const { id } = req.params;
@@ -106,5 +117,6 @@ export const userService = {
     getAllUsers,
     makeAdminById,
     deleteUser,
-    updateUser
+    updateUser,
+    getUserWithId
 }
