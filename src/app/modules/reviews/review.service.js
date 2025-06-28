@@ -55,27 +55,9 @@ const getProductReviews = catchAsync(async (req, res) => {
   }
 });
 
-const getAllReviews = catchAsync(async(req,res)=>{
-    try {
-
-        const reviews = await Review.find().populate("userId")
-            .sort({ createdAt: -1 });
-
-        res.status(200).json(reviews);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-})
 
 export const reviewService = {
-<<<<<<< HEAD
-    addReview,
-    getProductReviews,
-    getAllReviews
-}
-=======
   addReview,
   getAllReviews,
   getProductReviews,
 };
->>>>>>> origin/sabbir
