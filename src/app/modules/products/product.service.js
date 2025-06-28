@@ -28,23 +28,21 @@ const getAllProducts = catchAsync(async (req,res)=>{
     }
 })
 
-const getSingleProduct = catchAsync(async (req,res)=>{
+const getSingleProduct = catchAsync(async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await Product.findOne({ _id : id });
+        const result = await Product.findOne({ _id: id });
 
         if (!result) {
             return res.status(404).json({ message: "Product not found" });
         }
+
         res.status(200).json(result);
     } catch (err) {
-        res.status(500).json({ error: err.message })
+        res.status(500).json({ error: err.message });
     }
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
+
 
 const getLatestProducts = catchAsync(async (req, res) => {
   const latestProducts = await Product.find().sort({ createdAt: -1 }).limit(6);
@@ -127,21 +125,6 @@ const topSelling10 = catchAsync(async (req, res) => {
   res.status(200).json(topProducts);
 });
 
-const getLowStockProducts = catchAsync(async (req, res) => {
-  try {
-    const lowStock = await Product.find({ stock: { $lt: 5 } }).sort({ stock: 0 });
-    res.status(200).json(lowStock);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-const topSelling10 = catchAsync(async (req, res) => {
-    const topProducts = await Product.find()
-      .sort({ sold: -1 })
-      .limit(10);
-
-    res.status(200).json(topProducts);
-});
 
 
 export const productService = {
