@@ -14,7 +14,15 @@ const userSchema = new mongoose.Schema({
     role : {
         type : String,
         default : 'user'
-    }
+    },
+    order : {
+        type : Number,
+        default : 0
+    },
+    totalSpent : {
+        type : Number,
+        default : 0
+    },
 })
 
 export default userSchema

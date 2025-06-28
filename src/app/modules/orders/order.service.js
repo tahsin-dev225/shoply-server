@@ -20,11 +20,22 @@ const getAllOrders = catchAsync(async (req, res) => {
   try {
     const result = await Order.find();
 
-    res.status(200).json(result);
+    const newOrder = new Order({ productId, quantity, userId, price });
+    await newOrder.save();
+
+    await User.findByIdAndUpdate(userId, {
+      $inc: {
+        order: 1,
+        totalSpent: price
+      }
+    });
+
+    res.status(201).json(newProduct);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 const getSingleOrder = catchAsync(async (req, res) => {
   try {
