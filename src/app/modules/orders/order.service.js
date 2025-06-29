@@ -35,7 +35,7 @@ const getAllOrders = catchAsync(async (req, res) => {
 
 const getUserOrder = catchAsync(async (req, res) => {
     const { userId } = req.params;
-    const result = await Order.find({ userId: userId });
+    const result = await Order.find({ userId : userId }).populate("productId");
 
     if (!result) {
       return res.status(200).json({ message: "No order found." });
