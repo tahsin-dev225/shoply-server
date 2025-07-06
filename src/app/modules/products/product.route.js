@@ -15,8 +15,12 @@ router.get("/paginated", productService.getPaginatedProducts);
 router.get("/leatest-product", productService.getLatestProducts);
 router.get("/lowStock", productService.getLowStockProducts);
 router.get("/topSelling", productService.topSelling10);
+router.get("/getFeatured", productService.getFeaturedProducts);
+router.get("/getFiltered", productService.getFilteredProducts);
 router.get("/:id", productService.getSingleProduct);
+router.get("/by-category/:category", productService.getProductsByCategory);
 
+router.patch("/feature/:productId", productService.makeIsFeatured);
 router.patch("/:id", productService.updateProduct);
 
 router.delete("/:id", productService.deleteProduct);

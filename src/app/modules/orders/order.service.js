@@ -6,36 +6,60 @@ import { Product } from "../products/product.service.js";
 const Order = mongoose.model("Order", orderSchema);
 
 const addOrder = catchAsync(async (req, res) => {
-    const { productId, quantity, userId, price } = req.body;
+    const { userId, products } = req.body;
 
-    const newOrder = new Order({ productId, quantity, userId, price });
+  if (!products || products.length === 0) {
+    return res.status(400).json({ message: "No products provided" });
+  }
 
-    await newOrder.save();
+  let totalPrice = 0;
+  const finalProducts = [];
 
-    await User.findByIdAndUpdate(userId, {
-      $inc: {
-        order: 1,
-        totalSpent: price
-      }
+  for (const item of products) {
+    const product = await Product.findById(item.productId);
+    if (!product) {
+      return res.status(404).json({ message: `Product not found: ${item.productId}` });
+    }
+
+    const quantity = item.quantity || 1;
+    const itemTotal = product.price * quantity;
+    totalPrice += itemTotal;
+
+    finalProducts.push({
+      productId: product._id,
+      quantity,
+      price: product.price,
     });
+  }
 
-    res.status(201).json(newOrder);
+  const newOrder = new Order({
+    userId,
+    products: finalProducts,
+    totalPrice,
+  });
+  await newOrder.save();
+
+  await User.findByIdAndUpdate(userId, {
+    $inc: {
+      order: 1,
+      totalSpent: totalPrice
+    }
+  });
+
+  res.status(201).json(newOrder);
 });
 
 const getAllOrders = catchAsync(async (req, res) => {
-  try {
-    const result = await Order.find().populate('productId')
-    .populate('userId');
+    const result = await Order.find()
+      .populate('userId')
+      .populate('products.productId');
 
     res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 const getUserOrder = catchAsync(async (req, res) => {
     const { userId } = req.params;
-    const result = await Order.find({ userId : userId }).populate("productId");
+    const result = await Order.find({ userId }).populate("products.productId");
 
     if (!result) {
       return res.status(200).json({ message: "No order found." });
@@ -43,9 +67,34 @@ const getUserOrder = catchAsync(async (req, res) => {
     res.status(200).json(result);
 });
 
+const updateOrderStatus = catchAsync(async (req, res) => {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    console.log('order',orderId,status)
+    // const validStatuses = ["processing", "courier", "delivered", "cancelled"];
+
+    // if (!validStatuses.includes(status)) {
+    //   return res.status(400).json({ message: "Invalid status value" });
+    // }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    )
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({
+      message: "Order status updated successfully",
+    });
+});
+
 const getUserOrderProductDetails = catchAsync(async (req, res) => {
     const { userId,productId } = req.query;
-    const result = await Order.find({ userId }).populate(productId);
+    const result = await Order.find({ userId }).populate("products.productId");
 
     if (!result) {
       return res.status(200).json({ message: "No order found." });
@@ -56,8 +105,9 @@ const getUserOrderProductDetails = catchAsync(async (req, res) => {
 const getRecentOrders = catchAsync(async (req, res) => {
   try {
     const result = await Order.find()
-      .sort({ createdAt: -1 }) // Sort by newest
-      .limit(3); // Last 3 orders
+      .populate('products.productId')
+      .sort({ createdAt: -1 }) 
+      .limit(3); 
 
     res.status(200).json(result);
   } catch (err) {
@@ -94,7 +144,7 @@ const getLast30DaysEarnings = catchAsync(async (req, res) => {
       {
         $group: {
           _id: null,
-          totalEarnings: { $sum: "$price" },
+          totalEarnings: { $sum: "$totalPrice" },
         },
       },
     ]);
@@ -132,6 +182,19 @@ const getLast5MonthsStats = catchAsync(async (req, res) => {
   res.status(200).json(stats);
 });
 
+const deleteAllOrders = catchAsync(async (req, res) => {
+  try {
+    const result = await Order.deleteMany({}); // 🧹 delete all documents
+
+    res.status(200).json({
+      message: "All orders deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export const orderService = {
   addOrder,
   getAllOrders,
@@ -139,5 +202,7 @@ export const orderService = {
   getRecentOrders,
   getLast30DaysOrdersCount,
   getLast30DaysEarnings,
-  getLast5MonthsStats
+  getLast5MonthsStats,
+  deleteAllOrders,
+  updateOrderStatus
 };

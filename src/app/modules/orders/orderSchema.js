@@ -2,23 +2,52 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref : "Product",
-      required: true,
-    },
+    products: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          default: 1,
+        },
+        price: {
+          type: Number,
+          required: true,
+        }
+      }
+    ],
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref : "User",
+      ref: "User",
       required: true,
     },
-    quantity: {
-      type: Number,
-      required: true,
+
+    status: {
+      type: String,
+      enum: ["processing", "courier", "delivered", "cancelled"],
+      default: "processing",
     },
-    price: {
+
+    // 💰 Optional: Total price calculation
+    totalPrice: {
       type: Number,
-      required: true,
+    },
+
+    // 🚚 Optional: for future
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card", "sslcommerz"],
+      default: "cash",
+    },
+
+    address: {
+      type: String,
+      default: "",
     },
   },
   {

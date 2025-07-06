@@ -4,32 +4,21 @@ import productSchema from "./productSchema.js";
 export const Product = mongoose.model("Product",productSchema)
 
 const addProduct = catchAsync(async(req,res)=>{
-    try {
         const { name, category,image,price,description , stock   } = req.body;
-        // const existing = await User.findOne({ email });
-        // if (existing) return res.status(400).json({ message: "User already exists with this email." });
 
         const newProduct = new Product({ name, category,image,price,description ,stock });
         await newProduct.save();
 
         res.status(201).json(newProduct);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    } 
 })
 
 const getAllProducts = catchAsync(async (req,res)=>{
-    try {   
         const result = await Product.find();
 
         res.status(200).json(result);
-    } catch (err) {
-        res.status(500).json({ error: err.message })
-    }
 })
 
 const getSingleProduct = catchAsync(async (req, res) => {
-    try {
         const { id } = req.params;
         const result = await Product.findOne({ _id: id });
 
@@ -38,15 +27,11 @@ const getSingleProduct = catchAsync(async (req, res) => {
         }
 
         res.status(200).json(result);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
 });
 
 
 const getLatestProducts = catchAsync(async (req, res) => {
   const latestProducts = await Product.find().sort({ createdAt: -1 }).limit(6);
-
   res.status(200).json(latestProducts);
 });
 
@@ -119,13 +104,97 @@ const getLowStockProducts = catchAsync(async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 const topSelling10 = catchAsync(async (req, res) => {
-  const topProducts = await Product.find().sort({ sold: -1 }).limit(10);
+  const topProducts = await Product.find().sort({ sold: -1 }).limit(8);
 
   res.status(200).json(topProducts);
 });
 
+const makeIsFeatured = catchAsync(async (req, res) => {
+    const { productId } = req.params;
+    const { isFeatured } = req.body;
 
+    if (typeof isFeatured !== "boolean") {
+      return res.status(400).json({ message: "isFeatured must be true or false" });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { isFeatured },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      message: `Product marked as ${isFeatured ? "featured" : "not featured"}`,
+      product: updatedProduct,
+    });
+});
+
+const getFeaturedProducts = catchAsync(async (req, res) => {
+    const featuredProducts = await Product.find({ isFeatured: true })
+      .sort({ createdAt: -1 })
+      .limit(8);
+
+    res.status(200).json(featuredProducts);
+});
+
+const getProductsByCategory = catchAsync(async (req, res) => {
+    const { category } = req.params;
+    console.log(category)
+    const products = await Product.find({ category : category });
+    console.log(products)
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found in this category" });
+    }
+    res.status(200).json(products);
+});
+
+
+const getFilteredProducts = catchAsync(async (req, res) => {
+    const { min, max, rating, inStock, categories, sort } = req.query;
+    const filter = {};
+
+    // Price Range
+    if (min || max) {
+      filter.price = {};
+      if (min) filter.price.$gte = Number(min);
+      if (max) filter.price.$lte = Number(max);
+    }
+
+    // Rating
+    if (rating) {
+      filter.rating = { $gte: Number(rating) };
+    }
+
+    // Availability
+    if (inStock === "true") {
+      filter.inStock = true;
+    } else if (inStock === "false") {
+      filter.inStock = false;
+    }
+
+    // Categories (multiple)
+    if (categories) {
+      const categoryList = categories.split(",");
+      filter.category = { $in: categoryList };
+    }
+
+    let sortOption = { createdAt: -1 };
+
+    if (sort === "price_asc") sortOption = { price: 1 };
+    else if (sort === "price_desc") sortOption = { price: -1 };
+    else if (sort === "popularity") sortOption = { sold: -1 };
+    else if (sort === "newest") sortOption = { createdAt: -1 };
+
+    const products = await Product.find(filter).sort(sortOption);
+
+    res.status(200).json(products);
+});
 
 export const productService = {
     addProduct,
@@ -136,5 +205,9 @@ export const productService = {
     updateProduct,
     deleteProduct,
     getLowStockProducts,
-    topSelling10
+    topSelling10,
+    makeIsFeatured,
+    getFeaturedProducts,
+    getProductsByCategory,
+    getFilteredProducts
 }
