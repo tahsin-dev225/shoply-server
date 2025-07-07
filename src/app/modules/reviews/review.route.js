@@ -4,10 +4,15 @@ import validationMiddleware from "../../helper/validateJod.js";
 import { reviewValidation } from "./reviewValidation.js";
 const router = Router();
 
-router.post('/',validationMiddleware(reviewValidation.createValidation),reviewService.addReview)
+router.post(
+  "/",
+  validationMiddleware(reviewValidation.createValidation),
+  reviewService.addReview
+);
 
-router.get('/',reviewService.getAllReviews)
-router.get('/usersAll/:id',reviewService.getUsersAllReviews)
-router.get('/:productId',reviewService.getProductReviews)
+router.get("/", reviewService.getAllReviews);
+router.get("/usersAll/:id", reviewService.getUsersAllReviews);
+router.get("/:productId", reviewService.getProductReviews);
+router.delete("/:id", reviewService.deleteReview);
 
-export const reviewsRoute = router
+export const reviewsRoute = router;
