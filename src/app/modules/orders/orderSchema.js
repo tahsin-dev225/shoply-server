@@ -27,13 +27,13 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
+    // 💰 Optional: Total price calculation
     status: {
       type: String,
       enum: ["processing", "courier", "delivered", "cancelled"],
       default: "processing",
     },
 
-    // 💰 Optional: Total price calculation
     totalPrice: {
       type: Number,
     },
@@ -46,8 +46,30 @@ const orderSchema = new mongoose.Schema(
     },
 
     address: {
-      type: String,
-      default: "",
+      name: {
+        type: String,
+        required: true,
+      },
+      phone: {
+        type: String,
+        required: true,
+      },
+      street: {
+        type: String,
+        required: true,
+      },
+      thana: {
+        type: String,
+        required: true,
+      },
+      district: {
+        type: String,
+        required: true,
+      },
+      houseNumber: {
+        type: String,
+        default : ''
+      },
     },
   },
   {
