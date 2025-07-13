@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import catchAsync from "../../helper/catchAsync.js";
 import cartSchema from "./cartSchema.js";
-const Cart = mongoose.model("Cart", cartSchema);
+export const Cart = mongoose.model("Cart", cartSchema);
 
 const addCartDetails = catchAsync(async (req, res) => {
     const { productId, userId } = req.body;
@@ -14,7 +14,7 @@ const addCartDetails = catchAsync(async (req, res) => {
 
 const getUserCart = catchAsync(async (req, res) => {
     const { userId } = req.params;
-    const result = await Cart.find({ userId : userId }).populate("productId");
+    const result = await Cart.find({ userId }).populate("productId");
 
     if (!result) {
       return res.status(200).json({ message: "No cart found." });

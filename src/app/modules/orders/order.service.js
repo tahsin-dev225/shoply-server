@@ -3,10 +3,18 @@ import catchAsync from "../../helper/catchAsync.js";
 import orderSchema from "./orderSchema.js";
 import User from "../users/userSchema.js";
 import { Product } from "../products/product.service.js";
+import { Cart } from "../addToCart/cart.service.js";
 const Order = mongoose.model("Order", orderSchema);
 
+// import SSLCommerzPayment from "sslcommerz-lts";
+// import { v4 as uuidv4 } from "uuid"; // For unique transaction id
+
+// const store_id = process.env.SSLCOMMERZ_STORE_ID;
+// const store_passwd = process.env.SSLCOMMERZ_STORE_PASSWORD;
+// const isLive = false; // true হলে live, false হলে sandbox
+
 const addOrder = catchAsync(async (req, res) => {
-    const { userId, products } = req.body;
+    const { userId, products,address,paymentMethod } = req.body;
 
   if (!products || products.length === 0) {
     return res.status(400).json({ message: "No products provided" });
@@ -18,7 +26,7 @@ const addOrder = catchAsync(async (req, res) => {
   for (const item of products) {
     const product = await Product.findById(item.productId);
     if (!product) {
-      return res.status(404).json({ message: `Product not found: ${item.productId}` });
+      return res.status(404).json({ message: `Product nott  found: ${item.productId}` });
     }
 
     const quantity = item.quantity || 1;
@@ -35,9 +43,13 @@ const addOrder = catchAsync(async (req, res) => {
   const newOrder = new Order({
     userId,
     products: finalProducts,
-    totalPrice,
+    address,
+    paymentMethod,
+    totalPrice
   });
+  console.log(newOrder)
   await newOrder.save();
+  await Cart.deleteMany({userId})
 
   await User.findByIdAndUpdate(userId, {
     $inc: {
@@ -48,6 +60,56 @@ const addOrder = catchAsync(async (req, res) => {
 
   res.status(201).json(newOrder);
 });
+
+// const initiateSSLCommerzPayment =catchAsync( async (req, res) => {
+//   const { userId, products, address, totalPrice } = req.body;
+
+//   if (!products || products.length === 0) {
+//     return res.status(400).json({ message: "No products provided" });
+//   }
+
+//   const tran_id = uuidv4();
+
+//   const data = {
+//     total_amount: totalPrice,
+//     currency: "BDT",
+//     tran_id,
+//     success_url: `http://localhost:5000/api/v1/orders/payment-success?tran_id=${tran_id}`,
+//     fail_url: `http://localhost:5000/api/v1/orders/payment-fail?tran_id=${tran_id}`,
+//     cancel_url: `http://localhost:5000/api/v1/orders/payment-cancel`,
+//     ipn_url: `http://localhost:5000/api/v1/orders/ipn`,
+
+//     product_name: "Your Store Products",
+//     product_category: "Ecommerce",
+//     product_profile: "general",
+//     cus_name: address?.name || "N/A",
+//     cus_email: "customer@email.com",
+//     cus_add1: address?.street || "N/A",
+//     cus_city: address?.district || "N/A",
+//     cus_state: address?.thana || "N/A",
+//     cus_postcode: "1000",
+//     cus_country: "Bangladesh",
+//     cus_phone: address?.phone || "N/A",
+
+//     shipping_method: "Courier",
+//     ship_name: address?.name || "N/A",
+//     ship_add1: address?.street || "N/A",
+//     ship_city: address?.district || "N/A",
+//     ship_state: address?.thana || "N/A",
+//     ship_postcode: "1000",
+//     ship_country: "Bangladesh",
+//   };
+
+//   const sslcz = new SSLCommerzPayment(store_id, store_passwd, isLive);
+//   sslcz.init(data)
+//   .then((apiResponse) => {
+//     // Redirect user to SSLCommerz
+//     const GatewayPageURL = apiResponse.GatewayPageURL;
+//     res.status(200).json({ url: GatewayPageURL });
+//   }).catch(error => {
+//     res.status(500).json({ message: "Payment initialization failed", error });
+//   });
+// });
 
 const getAllOrders = catchAsync(async (req, res) => {
     const result = await Order.find()
@@ -106,6 +168,7 @@ const getRecentOrders = catchAsync(async (req, res) => {
   try {
     const result = await Order.find()
       .populate('products.productId')
+      .populate('userId')
       .sort({ createdAt: -1 }) 
       .limit(3); 
 

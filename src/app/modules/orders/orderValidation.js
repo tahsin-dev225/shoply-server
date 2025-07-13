@@ -6,6 +6,15 @@ const orderProductSchema = z.object({
   price: z.number().nonnegative("Price must be a positive number").optional(),
 });
 
+const addressValidation = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().min(10, "Phone is required"),
+  street: z.string().min(1, "Street is required"),
+  thana: z.string().min(1, "Thana is required"),
+  district: z.string().min(1, "District is required"),
+  houseNumber: z.string().optional()
+});
+
 const createValidation = z.object({
   products: z
     .array(orderProductSchema)
@@ -14,7 +23,7 @@ const createValidation = z.object({
   status: z.enum(["processing", "courier", "delivered", "cancelled"]).optional(),
   totalPrice: z.number().optional(),
   paymentMethod: z.enum(["cash", "card", "sslcommerz"]).optional(),
-  address: z.string().optional(),
+  address: addressValidation,
 });
 
 export const orderValidation = {
