@@ -6,6 +6,11 @@ export const Cart = mongoose.model("Cart", cartSchema);
 const addCartDetails = catchAsync(async (req, res) => {
     const { productId, userId } = req.body;
 
+    const isExist =await  Cart.findOne({ productId, userId });
+    console.log(isExist)
+    if(isExist){
+      return res.status(400).json({message : "Already in cart!"});
+    }
     const newCart = new Cart({ productId, userId });
     await newCart.save();
 

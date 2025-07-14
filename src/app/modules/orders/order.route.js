@@ -13,6 +13,7 @@ router.get('/last30Days/orders', orderService.getLast30DaysOrdersCount);
 router.get('/last30Days/earnings', orderService.getLast30DaysEarnings);
 router.get("/stats/last5Months", orderService.getLast5MonthsStats);
 router.get('/userOrder/:userId', orderService.getUserOrder );
+router.get('/userOrderDetails/:userId', orderService.getUserOrderDetails );
 
 router.patch('/updateStatus/:orderId', orderService.updateOrderStatus );
 
