@@ -21,6 +21,7 @@ const createValidation = z.object({
     .min(1, "At least one product is required"),
   userId: z.string().min(1, "User ID is required"),
   status: z.enum(["processing", "courier", "delivered", "cancelled"]).optional(),
+  cancleReason: z.string().optional(),
   totalPrice: z.number().optional(),
   paymentMethod: z.enum(["cash", "card", "sslcommerz"]).optional(),
   address: addressValidation,

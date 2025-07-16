@@ -121,6 +121,15 @@ const getAllOrders = catchAsync(async (req, res) => {
 
 const getUserOrder = catchAsync(async (req, res) => {
     const { userId } = req.params;
+    const result = await Order.find({ userId ,status: { $nin: ["cancelled", "delivered"] }}).populate("products.productId");
+
+    if (!result) {
+      return res.status(200).json({ message: "No order found." });
+    }
+    res.status(200).json(result);
+});
+const getUserOrderDetails = catchAsync(async (req, res) => {
+    const { userId } = req.params;
     const result = await Order.find({ userId }).populate("products.productId");
 
     if (!result) {
@@ -131,7 +140,7 @@ const getUserOrder = catchAsync(async (req, res) => {
 
 const updateOrderStatus = catchAsync(async (req, res) => {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status,cancle } = req.body;
     console.log('order',orderId,status)
     // const validStatuses = ["processing", "courier", "delivered", "cancelled"];
 
@@ -144,11 +153,23 @@ const updateOrderStatus = catchAsync(async (req, res) => {
       { status },
       { new: true }
     )
-
     if (!updatedOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    if(cancle === "empty"){
+      return res.status(200).json({
+        message: "Order status updated successfully",
+      });
+    }
+
+    if(cancle){
+      await Order.findByIdAndUpdate(
+        orderId,
+        { cancleReason : cancle },
+        { new: true }
+      )
+    }
     res.status(200).json({
       message: "Order status updated successfully",
     });
@@ -222,7 +243,7 @@ const getLast30DaysEarnings = catchAsync(async (req, res) => {
 
 const getLast5MonthsStats = catchAsync(async (req, res) => {
   const fiveMonthsAgo = new Date();
-  fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 4);
+  fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5);
 
   const stats = await Order.aggregate([
     {
@@ -234,7 +255,7 @@ const getLast5MonthsStats = catchAsync(async (req, res) => {
       $group: {
         _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
         totalOrders: { $sum: 1 },
-        totalEarnings: { $sum: "$price" },
+        totalEarnings: { $sum: "$totalPrice" },
       },
     },
     {
@@ -267,5 +288,6 @@ export const orderService = {
   getLast30DaysEarnings,
   getLast5MonthsStats,
   deleteAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  getUserOrderDetails
 };

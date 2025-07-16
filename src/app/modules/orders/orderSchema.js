@@ -33,6 +33,9 @@ const orderSchema = new mongoose.Schema(
       enum: ["processing", "courier", "delivered", "cancelled"],
       default: "processing",
     },
+    cancleReason: {
+      type: String,
+    },
 
     totalPrice: {
       type: Number,
