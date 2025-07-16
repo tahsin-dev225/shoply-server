@@ -279,6 +279,54 @@ const deleteAllOrders = catchAsync(async (req, res) => {
   }
 });
 
+const getCancelReasonPercentages = catchAsync( async (req, res) => {
+    const result = await Order.aggregate([
+      // Step 1: Filter only cancelled orders
+      { 
+        $match: { status: "cancelled" } 
+      },
+      // Step 2: Group by cancleReason and count
+      {
+        $group: {
+          _id: "$cancleReason",
+          count: { $sum: 1 },
+        }
+      },
+      // Step 3: Total count of cancelled products
+      {
+        $group: {
+          _id: null,
+          totalCancelled: { $sum: "$count" },
+          reasons: { $push: { reason: "$_id", count: "$count" } }
+        }
+      },
+      // Step 4: Calculate percentages
+      {
+        $project: {
+          _id: 0,
+          reasons: {
+            $map: {
+              input: "$reasons",
+              as: "reason",
+              in: {
+                reason: "$$reason.reason",
+                count: "$$reason.count",
+                percentage: {
+                  $multiply: [
+                    { $divide: ["$$reason.count", "$totalCancelled"] },
+                    100
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    res.json(result[0] || { reasons: [] });
+});
+
 export const orderService = {
   addOrder,
   getAllOrders,
@@ -289,5 +337,6 @@ export const orderService = {
   getLast5MonthsStats,
   deleteAllOrders,
   updateOrderStatus,
-  getUserOrderDetails
+  getUserOrderDetails,
+  getCancelReasonPercentages
 };

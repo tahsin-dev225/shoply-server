@@ -55,17 +55,47 @@ const getProductReviews = catchAsync(async (req, res) => {
   }
 });
 
+const getUsersAllReviews = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const reviews = await Review.find({ userId: id });
 
-const getUsersAllReviews = catchAsync(async(req,res)=>{
-        const {id} = req.params;
-        const reviews = await Review.find({userId : id})
+  res.status(200).json(reviews);
+});
 
-        res.status(200).json(reviews);
-})
+export const deleteReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const userId = req.query.userId;
+    const role = req.query.role;
+
+    if (!userId || !role) {
+      return res.status(400).json({ message: "User info required" });
+    }
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    if (role !== "admin" && review.userId.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this review" });
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+    res.status(200).json({ message: "Review deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 export const reviewService = {
-    addReview,
-    getProductReviews,
-    getAllReviews,
-    getUsersAllReviews
-}
+  addReview,
+  getProductReviews,
+  getAllReviews,
+  getUsersAllReviews,
+  deleteReview,
+};

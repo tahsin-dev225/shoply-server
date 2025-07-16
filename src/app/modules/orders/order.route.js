@@ -14,6 +14,7 @@ router.get('/last30Days/earnings', orderService.getLast30DaysEarnings);
 router.get("/stats/last5Months", orderService.getLast5MonthsStats);
 router.get('/userOrder/:userId', orderService.getUserOrder );
 router.get('/userOrderDetails/:userId', orderService.getUserOrderDetails );
+router.get('/canclePercentage', orderService.getCancelReasonPercentages);
 
 router.patch('/updateStatus/:orderId', orderService.updateOrderStatus );
 
