@@ -19,6 +19,7 @@ router.get("/topSelling", productService.topSelling10);
 router.get("/getFeatured", productService.getFeaturedProducts);
 router.get("/getFiltered", productService.getFilteredProducts);
 router.get("/price-range", productService.getProductsByPriceRange);
+router.get("/search", productService.searchProductsByName);
 router.get("/by-category/:category", productService.getProductsByCategory);
 
 // Feature toggle

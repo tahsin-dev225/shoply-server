@@ -221,6 +221,26 @@ const getProductsByPriceRange = catchAsync(async (req, res) => {
   res.status(200).json(products);
 });
 
+const searchProductsByName = catchAsync(async (req, res) => {
+  const { name } = req.query;
+
+  if (!name) {
+    return res.status(400).json({ message: "Search query 'name' is required" });
+  }
+
+  const products = await Product.find({
+    name: { $regex: name, $options: "i" },
+  });
+
+  if (products.length === 0) {
+    return res
+      .status(404)
+      .json({ message: "No products found with that name" });
+  }
+
+  res.status(200).json(products);
+});
+
 export const productService = {
   addProduct,
   getAllProducts,
@@ -236,4 +256,5 @@ export const productService = {
   getProductsByCategory,
   getFilteredProducts,
   getProductsByPriceRange,
+  searchProductsByName,
 };
