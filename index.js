@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(
     cors({
       origin: [
+        "https://shoply-client.vercel.app",
         "https://shoply-client.onrender.com",
         "http://localhost:3000"
       ],
