@@ -14,7 +14,7 @@ const Order = mongoose.model("Order", orderSchema);
 // const isLive = false; // true হলে live, false হলে sandbox
 
 const addOrder = catchAsync(async (req, res) => {
-    const { userId, products,address,paymentMethod } = req.body;
+  const { userId, products, address, paymentMethod } = req.body;
 
   if (!products || products.length === 0) {
     return res.status(400).json({ message: "No products provided" });
@@ -25,11 +25,24 @@ const addOrder = catchAsync(async (req, res) => {
 
   for (const item of products) {
     const product = await Product.findById(item.productId);
+
     if (!product) {
-      return res.status(404).json({ message: `Product nott  found: ${item.productId}` });
+      return res
+        .status(404)
+        .json({ message: `Product not found: ${item.productId}` });
     }
 
     const quantity = item.quantity || 1;
+
+    if (product.stock < quantity) {
+      return res
+        .status(400)
+        .json({ message: `Not enough stock for product: ${product.name}` });
+    }
+
+    product.stock -= quantity;
+    await product.save(); 
+
     const itemTotal = product.price * quantity;
     totalPrice += itemTotal;
 
@@ -45,17 +58,17 @@ const addOrder = catchAsync(async (req, res) => {
     products: finalProducts,
     address,
     paymentMethod,
-    totalPrice
+    totalPrice,
   });
-  console.log(newOrder)
+
   await newOrder.save();
-  await Cart.deleteMany({userId})
+  await Cart.deleteMany({ userId });
 
   await User.findByIdAndUpdate(userId, {
     $inc: {
       order: 1,
-      totalSpent: totalPrice
-    }
+      totalSpent: totalPrice,
+    },
   });
 
   res.status(201).json(newOrder);
@@ -112,86 +125,89 @@ const addOrder = catchAsync(async (req, res) => {
 // });
 
 const getAllOrders = catchAsync(async (req, res) => {
-    const result = await Order.find()
-      .populate('userId')
-      .populate('products.productId');
+  const result = await Order.find()
+    .populate("userId")
+    .populate("products.productId");
 
-    res.status(200).json(result);
+  res.status(200).json(result);
 });
 
 const getUserOrder = catchAsync(async (req, res) => {
-    const { userId } = req.params;
-    const result = await Order.find({ userId ,status: { $nin: ["cancelled", "delivered"] }}).populate("products.productId");
+  const { userId } = req.params;
+  const result = await Order.find({
+    userId,
+    status: { $nin: ["cancelled", "delivered"] },
+  }).populate("products.productId");
 
-    if (!result) {
-      return res.status(200).json({ message: "No order found." });
-    }
-    res.status(200).json(result);
+  if (!result) {
+    return res.status(200).json({ message: "No order found." });
+  }
+  res.status(200).json(result);
 });
 const getUserOrderDetails = catchAsync(async (req, res) => {
-    const { userId } = req.params;
-    const result = await Order.find({ userId }).populate("products.productId");
+  const { userId } = req.params;
+  const result = await Order.find({ userId }).populate("products.productId");
 
-    if (!result) {
-      return res.status(200).json({ message: "No order found." });
-    }
-    res.status(200).json(result);
+  if (!result) {
+    return res.status(200).json({ message: "No order found." });
+  }
+  res.status(200).json(result);
 });
 
 const updateOrderStatus = catchAsync(async (req, res) => {
-    const { orderId } = req.params;
-    const { status,cancle } = req.body;
-    console.log('order',orderId,status)
-    // const validStatuses = ["processing", "courier", "delivered", "cancelled"];
+  const { orderId } = req.params;
+  const { status, cancle } = req.body;
+  console.log("order", orderId, status);
+  // const validStatuses = ["processing", "courier", "delivered", "cancelled"];
 
-    // if (!validStatuses.includes(status)) {
-    //   return res.status(400).json({ message: "Invalid status value" });
-    // }
+  // if (!validStatuses.includes(status)) {
+  //   return res.status(400).json({ message: "Invalid status value" });
+  // }
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    )
-    if (!updatedOrder) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+  const updatedOrder = await Order.findByIdAndUpdate(
+    orderId,
+    { status },
+    { new: true }
+  );
+  if (!updatedOrder) {
+    return res.status(404).json({ message: "Order not found" });
+  }
 
-    if(cancle === "empty"){
-      return res.status(200).json({
-        message: "Order status updated successfully",
-      });
-    }
-
-    if(cancle){
-      await Order.findByIdAndUpdate(
-        orderId,
-        { cancleReason : cancle },
-        { new: true }
-      )
-    }
-    res.status(200).json({
+  if (cancle === "empty") {
+    return res.status(200).json({
       message: "Order status updated successfully",
     });
+  }
+
+  if (cancle) {
+    await Order.findByIdAndUpdate(
+      orderId,
+      { cancleReason: cancle },
+      { new: true }
+    );
+  }
+  res.status(200).json({
+    message: "Order status updated successfully",
+  });
 });
 
 const getUserOrderProductDetails = catchAsync(async (req, res) => {
-    const { userId,productId } = req.query;
-    const result = await Order.find({ userId }).populate("products.productId");
+  const { userId, productId } = req.query;
+  const result = await Order.find({ userId }).populate("products.productId");
 
-    if (!result) {
-      return res.status(200).json({ message: "No order found." });
-    }
-    res.status(200).json(result);
+  if (!result) {
+    return res.status(200).json({ message: "No order found." });
+  }
+  res.status(200).json(result);
 });
 
 const getRecentOrders = catchAsync(async (req, res) => {
   try {
     const result = await Order.find()
-      .populate('products.productId')
-      .populate('userId')
-      .sort({ createdAt: -1 }) 
-      .limit(3); 
+      .populate("products.productId")
+      .populate("userId")
+      .sort({ createdAt: -1 })
+      .limit(3);
 
     res.status(200).json(result);
   } catch (err) {
@@ -279,52 +295,52 @@ const deleteAllOrders = catchAsync(async (req, res) => {
   }
 });
 
-const getCancelReasonPercentages = catchAsync( async (req, res) => {
-    const result = await Order.aggregate([
-      // Step 1: Filter only cancelled orders
-      { 
-        $match: { status: "cancelled" } 
+const getCancelReasonPercentages = catchAsync(async (req, res) => {
+  const result = await Order.aggregate([
+    // Step 1: Filter only cancelled orders
+    {
+      $match: { status: "cancelled" },
+    },
+    // Step 2: Group by cancleReason and count
+    {
+      $group: {
+        _id: "$cancleReason",
+        count: { $sum: 1 },
       },
-      // Step 2: Group by cancleReason and count
-      {
-        $group: {
-          _id: "$cancleReason",
-          count: { $sum: 1 },
-        }
+    },
+    // Step 3: Total count of cancelled products
+    {
+      $group: {
+        _id: null,
+        totalCancelled: { $sum: "$count" },
+        reasons: { $push: { reason: "$_id", count: "$count" } },
       },
-      // Step 3: Total count of cancelled products
-      {
-        $group: {
-          _id: null,
-          totalCancelled: { $sum: "$count" },
-          reasons: { $push: { reason: "$_id", count: "$count" } }
-        }
+    },
+    // Step 4: Calculate percentages
+    {
+      $project: {
+        _id: 0,
+        reasons: {
+          $map: {
+            input: "$reasons",
+            as: "reason",
+            in: {
+              reason: "$$reason.reason",
+              count: "$$reason.count",
+              percentage: {
+                $multiply: [
+                  { $divide: ["$$reason.count", "$totalCancelled"] },
+                  100,
+                ],
+              },
+            },
+          },
+        },
       },
-      // Step 4: Calculate percentages
-      {
-        $project: {
-          _id: 0,
-          reasons: {
-            $map: {
-              input: "$reasons",
-              as: "reason",
-              in: {
-                reason: "$$reason.reason",
-                count: "$$reason.count",
-                percentage: {
-                  $multiply: [
-                    { $divide: ["$$reason.count", "$totalCancelled"] },
-                    100
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    ]);
+    },
+  ]);
 
-    res.json(result[0] || { reasons: [] });
+  res.json(result[0] || { reasons: [] });
 });
 
 export const orderService = {
@@ -338,5 +354,5 @@ export const orderService = {
   deleteAllOrders,
   updateOrderStatus,
   getUserOrderDetails,
-  getCancelReasonPercentages
+  getCancelReasonPercentages,
 };
