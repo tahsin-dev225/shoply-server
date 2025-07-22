@@ -20,6 +20,7 @@ router.get("/getFeatured", productService.getFeaturedProducts);
 router.get("/getFiltered", productService.getFilteredProducts);
 router.get("/price-range", productService.getProductsByPriceRange);
 router.get("/by-category/:category", productService.getProductsByCategory);
+router.get("/filteredProducts", productService.getFilteredProduct);
 
 // Feature toggle
 router.patch("/feature/:productId", productService.makeIsFeatured);
