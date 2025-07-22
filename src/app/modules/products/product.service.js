@@ -205,6 +205,81 @@ const getFilteredProducts = catchAsync(async (req, res) => {
   res.status(200).json(products);
 });
 
+const getFilteredProduct = async (req, res) => {
+  const {
+    category,
+    minPrice,
+    maxPrice,
+    minRating,
+    availability,
+    sortBy,
+    sortOrder = "asc",
+    page = 1,
+    limit = 10,
+    search,
+  } = req.query;
+  const mnPrice = parseInt(minPrice);
+  const mxPrice = parseInt(maxPrice);
+  const mnRating = parseInt(minRating);
+  const currentPage = parseInt(page);
+  const pLimit = parseInt(limit);
+
+  const filter = {};
+  if (search) {
+    filter.name = { $regex: search, $options: "i" };
+  }
+
+  if (category) {
+    filter.category = category;
+  }
+
+  if (mnPrice || mxPrice) {
+    filter.price = {};
+    if (mnPrice) filter.price.$gte = Number(mnPrice);
+    if (mxPrice) filter.price.$lte = Number(mxPrice);
+  }
+
+  if (mnRating) {
+    filter.rating = { $gte: Number(mnRating) };
+  }
+
+  if (availability) {
+    if (availability === "inStock") {
+      filter.stock = { $gt: 0 };
+    } else if (availability === "outOfStock") {
+      filter.stock = 0;
+    }
+  }
+
+  let sortCriteria = {};
+
+  if (sortBy === "priceLowToHigh") {
+    sortCriteria.price = 1;
+  } else if (sortBy === "priceHighToLow") {
+    sortCriteria.price = -1;
+  } else if (sortBy === "newest") {
+    sortCriteria.createdAt = -1;
+  } else if (sortBy === "popularity") {
+    sortCriteria.sold = -1;
+  }
+
+  const skip = (Number(currentPage) - 1) * Number(pLimit);
+
+  const products = await Product.find(filter)
+    .sort(sortCriteria)
+    .skip(skip)
+    .limit(Number(pLimit));
+
+  const total = await Product.countDocuments(filter);
+
+  res.status(200).json({
+    total,
+    page: Number(currentPage),
+    totalPages: Math.ceil(total / pLimit),
+    products,
+  });
+};
+
 const getProductsByPriceRange = catchAsync(async (req, res) => {
   const { min, max } = req.query;
 
@@ -257,4 +332,5 @@ export const productService = {
   getFilteredProducts,
   getProductsByPriceRange,
   searchProductsByName,
+  getFilteredProduct,
 };
