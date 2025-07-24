@@ -165,7 +165,7 @@ const getProductsByCategory = catchAsync(async (req, res) => {
 });
 
 const getFilteredProducts = catchAsync(async (req, res) => {
-  const { min, max, rating, inStock, categories, sort } = req.query;
+  const { min, max, rating, categories, sort, isFeatured } = req.query;
   const filter = {};
 
   // Price Range
@@ -181,16 +181,23 @@ const getFilteredProducts = catchAsync(async (req, res) => {
   }
 
   // Availability
-  if (inStock === "true") {
-    filter.inStock = true;
-  } else if (inStock === "false") {
-    filter.inStock = false;
+  if (stock === "inStock") {
+    filter.stock = { $gt: 0 }; // stock > 0
+  } else if (stock === "outStock") {
+    filter.stock = 0; // stock === 0
   }
 
   // Categories (multiple)
   if (categories) {
     const categoryList = categories.split(",");
     filter.category = { $in: categoryList };
+  }
+
+  // Featured
+  if (isFeatured === "true") {
+    filter.isFeatured = true;
+  } else if (isFeatured === "false") {
+    filter.isFeatured = false;
   }
 
   let sortOption = { createdAt: -1 };
@@ -211,7 +218,7 @@ const getFilteredProduct = async (req, res) => {
     minPrice,
     maxPrice,
     minRating,
-    availability,
+    stock,
     sortBy,
     sortOrder = "asc",
     page = 1,
@@ -243,12 +250,16 @@ const getFilteredProduct = async (req, res) => {
     filter.rating = { $gte: Number(mnRating) };
   }
 
-  if (availability) {
-    if (availability === "inStock") {
-      filter.stock = { $gt: 0 };
-    } else if (availability === "outOfStock") {
-      filter.stock = 0;
-    }
+  // Availability
+  if (stock === "inStock") {
+    filter.stock = { $gt: 0 }; // stock > 0
+  } else if (stock === "outStock") {
+    filter.stock = 0; // stock === 0
+  }
+
+  // Featured
+  if (sortBy === "featured") {
+    filter.isFeatured = true;
   }
 
   let sortCriteria = {};

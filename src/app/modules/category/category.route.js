@@ -3,8 +3,10 @@ import validationMiddleware from "../../helper/validateJod.js";
 import { categoryService } from "./category.service.js";
 const router = Router();
 
-router.post('/',categoryService.addCategory )
+router.post("/", categoryService.addCategory);
 
-router.get('/', categoryService.getAllCategory )
+router.get("/", categoryService.getAllCategory);
 
-export const categoryRoute = router
+router.patch("/:id", categoryService.updateCategory);
+
+export const categoryRoute = router;
