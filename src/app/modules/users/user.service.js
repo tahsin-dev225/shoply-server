@@ -108,7 +108,6 @@ const getPaginatedUsers = catchAsync(async (req, res) => {
   const search = req.query.search;
   const filter = {};
 
-  // Search by name (case insensitive)
   if (search) {
     filter.$or = [
       { name: { $regex: search, $options: "i" } },
