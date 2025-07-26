@@ -11,6 +11,7 @@ router.post(
 );
 
 router.get("/", reviewService.getAllReviews);
+router.get("/paginated", reviewService.getPaginatedReviews);
 router.get("/usersAll/:id", reviewService.getUsersAllReviews);
 router.get("/:productId", reviewService.getProductReviews);
 router.delete("/:id", reviewService.deleteReview);

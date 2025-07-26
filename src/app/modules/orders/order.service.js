@@ -41,7 +41,7 @@ const addOrder = catchAsync(async (req, res) => {
     }
 
     product.stock -= quantity;
-    await product.save(); 
+    await product.save();
 
     const itemTotal = product.price * quantity;
     totalPrice += itemTotal;
@@ -132,6 +132,113 @@ const getAllOrders = catchAsync(async (req, res) => {
   res.status(200).json(result);
 });
 
+const getPaginatedOrders = catchAsync(async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const search = req.query.search;
+
+    const matchStage = {};
+
+    const pipeline = [
+      // Populate userId
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+
+      // Optional: Search by user name or email
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [
+                  { "user.name": { $regex: search, $options: "i" } },
+                  { "user.email": { $regex: search, $options: "i" } },
+                ],
+              },
+            },
+          ]
+        : []),
+
+      // Populate products.productId
+      {
+        $unwind: "$products",
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "products.productId",
+          foreignField: "_id",
+          as: "products.productData",
+        },
+      },
+      {
+        $unwind: "$products.productData",
+      },
+      {
+        $group: {
+          _id: "$_id",
+          userId: { $first: "$userId" },
+          user: { $first: "$user" },
+          address: { $first: "$address" },
+          paymentMethod: { $first: "$paymentMethod" },
+          status: { $first: "$status" },
+          cancleReason: { $first: "$cancleReason" },
+          totalPrice: { $first: "$totalPrice" },
+          createdAt: { $first: "$createdAt" },
+          products: {
+            $push: {
+              quantity: "$products.quantity",
+              price: "$products.price",
+              productId: "$products.productId",
+              productData: "$products.productData",
+            },
+          },
+        },
+      },
+
+      // Sort and paginate
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    // Count total matching orders for pagination
+    const countPipeline = pipeline.filter(
+      (stage) => !("$skip" in stage || "$limit" in stage || "$sort" in stage)
+    );
+    countPipeline.push({
+      $count: "totalCount",
+    });
+
+    const [orders, countResult] = await Promise.all([
+      Order.aggregate(pipeline),
+      Order.aggregate(countPipeline),
+    ]);
+
+    const totalCount = countResult[0]?.totalCount || 0;
+
+    res.status(200).json({
+      orders,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const getUserOrder = catchAsync(async (req, res) => {
   const { userId } = req.params;
   const result = await Order.find({
@@ -144,6 +251,7 @@ const getUserOrder = catchAsync(async (req, res) => {
   }
   res.status(200).json(result);
 });
+
 const getUserOrderDetails = catchAsync(async (req, res) => {
   const { userId } = req.params;
   const result = await Order.find({ userId }).populate("products.productId");
@@ -355,4 +463,5 @@ export const orderService = {
   updateOrderStatus,
   getUserOrderDetails,
   getCancelReasonPercentages,
+  getPaginatedOrders,
 };

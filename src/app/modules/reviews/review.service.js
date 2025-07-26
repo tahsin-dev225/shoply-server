@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { get } from "mongoose";
 import catchAsync from "../../helper/catchAsync.js";
 import reviewSchema from "./reviewSchema.js";
 const Review = mongoose.model("Review", reviewSchema);
@@ -62,6 +62,69 @@ const getUsersAllReviews = catchAsync(async (req, res) => {
   res.status(200).json(reviews);
 });
 
+const getPaginatedReviews = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+  const skip = (page - 1) * limit;
+
+  const matchStage = {};
+
+  const pipeline = [
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $unwind: "$user",
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "product",
+      },
+    },
+    {
+      $unwind: "$product",
+    },
+    {
+      $match: {
+        $or: [
+          { "user.name": { $regex: search, $options: "i" } },
+          { "product.name": { $regex: search, $options: "i" } },
+        ],
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $facet: {
+        reviews: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ];
+
+  const result = await Review.aggregate(pipeline);
+
+  const reviews = result[0].reviews;
+  const total = result[0].totalCount[0]?.count || 0;
+
+  res.status(200).json({
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+    reviews,
+  });
+};
+
 export const deleteReview = async (req, res) => {
   try {
     const reviewId = req.params.id;
@@ -91,11 +154,11 @@ export const deleteReview = async (req, res) => {
   }
 };
 
-
 export const reviewService = {
   addReview,
   getProductReviews,
   getAllReviews,
   getUsersAllReviews,
   deleteReview,
+  getPaginatedReviews,
 };

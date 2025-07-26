@@ -100,11 +100,43 @@ const updateUser = catchAsync(async (req, res) => {
   });
 });
 
+const getPaginatedUsers = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 7;
+  const skip = (page - 1) * limit;
+
+  const search = req.query.search;
+  const filter = {};
+
+  // Search by name (case insensitive)
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const users = await User.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const totalCount = await User.countDocuments(filter);
+
+  res.status(200).json({
+    users,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount / limit),
+    totalCount,
+  });
+});
+
 export const userService = {
-    addUser,
-    getUserWithEmail,
-    getAllUsers,
-    makeAdminById,
-    deleteUser,
-    updateUser,
-}
+  addUser,
+  getUserWithEmail,
+  getAllUsers,
+  makeAdminById,
+  deleteUser,
+  updateUser,
+  getPaginatedUsers,
+};

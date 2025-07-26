@@ -45,15 +45,22 @@ const getPaginatedProducts = catchAsync(async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1; // default page 1
     const limit = 10;
-
     const skip = (page - 1) * limit;
 
-    const products = await Product.find()
+    const search = req.query.search;
+    const filter = {};
+
+    // Search by name (case insensitive)
+    if (search) {
+      filter.name = { $regex: search, $options: "i" };
+    }
+
+    const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const totalCount = await Product.countDocuments();
+    const totalCount = await Product.countDocuments(filter);
 
     res.status(200).json({
       products,
