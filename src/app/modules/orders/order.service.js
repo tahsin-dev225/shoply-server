@@ -40,7 +40,9 @@ const addOrder = catchAsync(async (req, res) => {
         .json({ message: `Not enough stock for product: ${product.name}` });
     }
 
+    // 🟡 Reduce stock and increase sold count
     product.stock -= quantity;
+    product.sold = (product.sold || 0) + quantity;
     await product.save();
 
     const itemTotal = product.price * quantity;
