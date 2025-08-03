@@ -34,24 +34,33 @@ const addOrder = catchAsync(async (req, res) => {
 
     const quantity = item.quantity || 1;
 
-    if (product.stock < quantity) {
-      return res
-        .status(400)
-        .json({ message: `Not enough stock for product: ${product.name}` });
+    const updatedProduct = await Product.findOneAndUpdate(
+      {
+        _id: item.productId,
+        stock: { $gte: quantity }, // make sure stock is enough
+      },
+      {
+        $inc: {
+          stock: -quantity,
+          sold: quantity,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(400).json({
+        message: `Not enough stock for product: ${product.name}`,
+      });
     }
 
-    // 🟡 Reduce stock and increase sold count
-    product.stock -= quantity;
-    product.sold = (product.sold || 0) + quantity;
-    await product.save();
-
-    const itemTotal = product.price * quantity;
+    const itemTotal = updatedProduct.price * quantity;
     totalPrice += itemTotal;
 
     finalProducts.push({
-      productId: product._id,
+      productId: updatedProduct._id,
       quantity,
-      price: product.price,
+      price: updatedProduct.price,
     });
   }
 
